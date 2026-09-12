@@ -4,10 +4,24 @@ To see all commits, including all alpha changes, [*go here*](https://github.com/
 
 ## Releases
 
+#### Local patch (2026-09-18)
+
+- Replaced the field-write/UpdateGridLayout mechanism (method 1/2) with a new
+  taint-safe method (3, now default): reposition the bar's button container
+  children directly, replicating Blizzard's grid math, without ever writing to
+  the bar's own fields or calling a method on it. Reapplied via a deferred
+  (C_Timer.After) callback on relevant action bar events, so it never runs
+  inside a Blizzard-initiated call stack.
+- Fixes taint spreading to unrelated systems (party frame health/range,
+  action button cooldowns, Edit Mode `ClearTarget`) reported as
+  "tainted by 'ActionBarButtonGrowthDirection'" on the 12.0 prepatch/beta.
+- Existing profiles using method 1/2 are auto-migrated to method 3.
+
 #### 1.2.0 (2026-09-18)
 
 - Add Classic compatibility flag to toc (thanks to @Ciaanh; see [PR](https://github.com/tflo/Action-Bar-Button-Growth-Direction/pull/10)).
 - Update Retail toc flags.
+
 
 #### 1.1.10 (2026-06-14)
 

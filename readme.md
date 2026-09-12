@@ -93,6 +93,8 @@ Index to bar mapping, as of 12.0.1:
 6: MultiBar5           = “Action Bar 6”
 7: MultiBar6           = “Action Bar 7”
 8: MultiBar7           = “Action Bar 8”
+9: StanceBar           = “Stance/Shapeshift Bar”
+10: PetActionBar       = “Pet Action Bar”
 ```
 
 ---

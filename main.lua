@@ -59,10 +59,24 @@ local db = ABBGD_db
 ===========================================================================]]--
 
 local modified = {}
+
+local function isClassicClient()
+	if type(WOW_PROJECT_ID) == 'number' then
+		return WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+	end
+
+	-- Safety fallback if the project ID is unavailable in some legacy client.
+	if _G.MainMenuBar and not _G.MainActionBar then
+		return true
+	end
+
+	return false
+end
+
 local map = {
-	-- updated to match Blizzard's current frame name (MainActionBar) while
-	-- keeping a fallback resolver for older clients using MainMenuBar.
-	[1] = 'MainActionBar', -- previously MainMenuBar
+	-- Use the correct main bar name depending on the running client, but keep the
+	-- generic fallback resolver below for compatibility with both Classic and Retail.
+	[1] = isClassicClient() and 'MainMenuBar' or 'MainActionBar',
 	[2] = 'MultiBarBottomLeft',
 	[3] = 'MultiBarBottomRight',
 	[4] = 'MultiBarRight',
@@ -94,6 +108,8 @@ local function resolve_bar_name(name)
 	if fallback_map[name] and _G[fallback_map[name]] then return fallback_map[name] end
 	-- Generic substitution in case of simple renames
 	local alt = name:gsub('MainMenuBar', 'MainActionBar')
+	if alt ~= name and _G[alt] then return alt end
+	alt = name:gsub('MainActionBar', 'MainMenuBar')
 	if alt ~= name and _G[alt] then return alt end
 	return nil
 end
@@ -161,10 +177,8 @@ local function modify_bars()
 						local frame, resolved = try_get_frame(bar_name)
 						if frame then
 							reverse_growth[db.method](axis, frame, resolved or bar_name)
-							-- Store the resolved frame to avoid re-resolving later
 							modified[resolved or bar_name] = frame
 						else
-							-- Frame not present; simply log. No deferred retry.
 							dprint('modify_bars: bar not found', tostring(bar_name))
 						end
 					end

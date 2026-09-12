@@ -60,23 +60,11 @@ local db = ABBGD_db
 
 local modified = {}
 
-local function isClassicClient()
-	if type(WOW_PROJECT_ID) == 'number' then
-		return WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-	end
-
-	-- Safety fallback if the project ID is unavailable in some legacy client.
-	if _G.MainMenuBar and not _G.MainActionBar then
-		return true
-	end
-
-	return false
-end
-
 local map = {
-	-- Use the correct main bar name depending on the running client, but keep the
-	-- generic fallback resolver below for compatibility with both Classic and Retail.
-	[1] = isClassicClient() and 'MainMenuBar' or 'MainActionBar',
+	-- Both Classic and Retail name the actual multi-row action bar 'MainActionBar'.
+	-- 'MainMenuBar' still exists on Classic, but it's just the background/art
+	-- container frame, not the button bar, so it must not be used here.
+	[1] = 'MainActionBar',
 	[2] = 'MultiBarBottomLeft',
 	[3] = 'MultiBarBottomRight',
 	[4] = 'MultiBarRight',
@@ -94,23 +82,9 @@ local map = {
 -- 	[10] = 'PetActionBar',
 }
 
--- Fallbacks for frames that were renamed in recent client patches
-local fallback_map = {
-	-- known rename: MainMenuBar -> MainActionBar. Add both directions so we can
-	-- resolve either name on older or newer clients.
-	['MainMenuBar'] = 'MainActionBar',
-	['MainActionBar'] = 'MainMenuBar',
-}
-
 local function resolve_bar_name(name)
 	if type(name) ~= 'string' then return nil end
 	if _G[name] then return name end
-	if fallback_map[name] and _G[fallback_map[name]] then return fallback_map[name] end
-	-- Generic substitution in case of simple renames
-	local alt = name:gsub('MainMenuBar', 'MainActionBar')
-	if alt ~= name and _G[alt] then return alt end
-	alt = name:gsub('MainActionBar', 'MainMenuBar')
-	if alt ~= name and _G[alt] then return alt end
 	return nil
 end
 

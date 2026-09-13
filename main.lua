@@ -59,12 +59,10 @@ local db = ABBGD_db
 ===========================================================================]]--
 
 local modified = {}
-
 local map = {
-	-- Both Classic and Retail name the actual multi-row action bar 'MainActionBar'.
-	-- 'MainMenuBar' still exists on Classic, but it's just the background/art
-	-- container frame, not the button bar, so it must not be used here.
-	[1] = 'MainActionBar',
+	-- updated to match Blizzard's current frame name (MainActionBar), both for Classic and Retail
+	-- while keeping a fallback resolver for older clients using MainMenuBar.
+	[1] = 'MainActionBar', -- previously MainMenuBar
 	[2] = 'MultiBarBottomLeft',
 	[3] = 'MultiBarBottomRight',
 	[4] = 'MultiBarRight',
@@ -82,9 +80,21 @@ local map = {
 -- 	[10] = 'PetActionBar',
 }
 
+-- Fallbacks for frames that were renamed in recent client patches
+local fallback_map = {
+	-- known rename: MainMenuBar -> MainActionBar. Add both directions so we can
+	-- resolve either name on older or newer clients.
+	['MainMenuBar'] = 'MainActionBar',
+	['MainActionBar'] = 'MainMenuBar',
+}
+
 local function resolve_bar_name(name)
 	if type(name) ~= 'string' then return nil end
 	if _G[name] then return name end
+	if fallback_map[name] and _G[fallback_map[name]] then return fallback_map[name] end
+	-- Generic substitution in case of simple renames
+	local alt = name:gsub('MainMenuBar', 'MainActionBar')
+	if alt ~= name and _G[alt] then return alt end
 	return nil
 end
 
@@ -151,8 +161,10 @@ local function modify_bars()
 						local frame, resolved = try_get_frame(bar_name)
 						if frame then
 							reverse_growth[db.method](axis, frame, resolved or bar_name)
+							-- Store the resolved frame to avoid re-resolving later
 							modified[resolved or bar_name] = frame
 						else
+							-- Frame not present; simply log. No deferred retry.
 							dprint('modify_bars: bar not found', tostring(bar_name))
 						end
 					end

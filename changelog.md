@@ -4,18 +4,18 @@ To see all commits, including all alpha changes, [*go here*](https://github.com/
 
 ## Releases
 
-#### Local patch (2026-09-18)
+#### 1.2.1 (2026-09-19)
 
-- Replaced the field-write/UpdateGridLayout mechanism (method 1/2) with a new
-  taint-safe method (3, now default): reposition the bar's button container
-  children directly, replicating Blizzard's grid math, without ever writing to
-  the bar's own fields or calling a method on it. Reapplied via a deferred
-  (C_Timer.After) callback on relevant action bar events, so it never runs
-  inside a Blizzard-initiated call stack.
+- toc bump to support Forever
+- Replaced the field-write/UpdateGridLayout mechanism with a taint-safe method :
+  reposition the bar's button container  children directly, replicating Blizzard's
+  grid math, without writing to the bar's own fields or calling a method on it.
 - Fixes taint spreading to unrelated systems (party frame health/range,
   action button cooldowns, Edit Mode `ClearTarget`) reported as
-  "tainted by 'ActionBarButtonGrowthDirection'" on the 12.0 prepatch/beta.
-- Existing profiles using method 1/2 are auto-migrated to method 3.
+  "tainted by 'ActionBarButtonGrowthDirection'" on the 1.60 (Forever) beta.
+- Existing profiles using previous method are auto-migrated to the new one.
+- Added an in-game options panel with dropdowns for the X/Y "enable" mode and per-bar checkboxes.
+  Changes apply live; unchecking a bar restores its default layout immediately.
 
 #### 1.2.0 (2026-09-18)
 

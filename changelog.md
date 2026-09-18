@@ -4,6 +4,11 @@ To see all commits, including all alpha changes, [*go here*](https://github.com/
 
 ## Releases
 
+#### 1.2.0 (2026-09-18)
+
+- Add Classic compatibility flag to toc (thanks to @Ciaanh; see [PR](https://github.com/tflo/Action-Bar-Button-Growth-Direction/pull/10)).
+- Update Retail toc flags.
+
 #### 1.1.10 (2026-06-14)
 
 - toc bump, no changes.

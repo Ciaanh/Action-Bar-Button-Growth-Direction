@@ -3,15 +3,16 @@
 
 local MYNAME, NS = ...
 local db = NS.db
+local defaults = NS.defaults
 local map = NS.map
 local dprint = NS.dprint
-local schedule_reapply = NS.schedule_reapply
+local settings_changed = NS.settings_changed
 
 --[[===========================================================================
 	Options panel (Settings API)
 
-	Live-editable: every setter below calls schedule_reapply(), and main.lua's
-	reapply_all() restores a bar's default layout as soon as it's no longer
+	Live-editable: every setter below calls settings_changed(), and main.lua's
+	reapply() restores a bar's default layout as soon as it's no longer
 	enabled, so changes take effect immediately, no /reload required.
 ===========================================================================]]--
 
@@ -27,7 +28,7 @@ local BAR_LABELS = {
 	[9] = 'Stance Bar',
 	[10] = 'Pet Action Bar',
 }
-local MAX_BAR_INDEX = 10
+local MAX_BAR_INDEX = NS.MAX_BAR_INDEX
 
 local ENABLE_OPTIONS = {
 	{ value = 'none', label = 'None (per-bar settings ignored)' },
@@ -39,15 +40,15 @@ local function make_enable_dropdown(category, axis, axis_label)
 	local function get() return db.enable[axis] end
 	local function set(value)
 		db.enable[axis] = value
-		schedule_reapply('OPTIONS_enable_' .. axis)
+		settings_changed('OPTIONS_enable_' .. axis)
 	end
 
 	local setting = Settings.RegisterProxySetting(
 		category, 
 		'ABBGD_enable_' .. axis, 
 		Settings.VarType.String,
-		'Axis activation mode', 
-		'some', 
+		axis_label .. '-axis mode',
+		defaults.enable[axis],
 		get, 
 		set
 	)
@@ -68,26 +69,26 @@ local function make_enable_dropdown(category, axis, axis_label)
 end
 
 -- parent_initializer is the axis' enable-mode dropdown; its checkboxes are
--- greyed out and non-interactive whenever that axis' enable mode is 'none'.
+-- greyed out and non-interactive unless that axis' enable mode is 'some' (per bar).
 local function make_bar_checkboxes(category, axis, axis_label, note, parent_initializer)
-	local function is_axis_enabled() return db.enable[axis] ~= 'none' and db.enable[axis] ~= 'all' end
+	local function is_per_bar_mode() return db.enable[axis] == 'some' end
 	
 	for idx = 1, MAX_BAR_INDEX do
 		local current_idx = idx
 		
 		local label = BAR_LABELS[current_idx] or tostring(current_idx)
-		local function get() return db[axis][current_idx] end
+		local function get() return db[axis][current_idx] == true end
 		local function set(value)
 			db[axis][current_idx] = value
-			schedule_reapply('OPTIONS_' .. axis .. '_' .. current_idx)
+			settings_changed('OPTIONS_' .. axis .. '_' .. current_idx)
 		end
 
 		local setting = Settings.RegisterProxySetting(
 			category, 
 			'ABBGD_' .. axis .. '_' .. current_idx, 
 			Settings.VarType.Boolean,
-			label, 
-			false, 
+			label,
+			defaults[axis][current_idx],
 			get, 
 			set
 		)
@@ -96,8 +97,7 @@ local function make_bar_checkboxes(category, axis, axis_label, note, parent_init
 			setting, 
 			'Reverse the ' .. axis_label .. '-axis growth direction of ' .. label .. note)
 		if parent_initializer then
-			checkbox:SetParentInitializer(parent_initializer, is_axis_enabled)
-			
+			checkbox:SetParentInitializer(parent_initializer, is_per_bar_mode)
 		end
 	end
 end
@@ -121,7 +121,8 @@ local function build_options_panel()
 		make_bar_checkboxes(category, 'x', 'X', '. Only used when the X-axis dropdown above is set to "Per bar".', x_dropdown)
 	end)
 	if not ok then
-		dprint('build_options_panel: failed to build options panel:', tostring(err))
+		-- Surface it in the Lua error frame instead of failing silently.
+		geterrorhandler()(MYNAME .. ': failed to build options panel: ' .. tostring(err))
 	end
 end
 

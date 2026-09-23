@@ -16,6 +16,12 @@ To see all commits, including all alpha changes, [*go here*](https://github.com/
 - Existing profiles using previous method are auto-migrated to the new one.
 - Added an in-game options panel with dropdowns for the X/Y "enable" mode and per-bar checkboxes.
   Changes apply live; unchecking a bar restores its default layout immediately.
+- Postpone re-layouts requested in combat until combat ends (the button containers are restricted in combat).
+- Re-apply after Edit Mode changes (`EDIT_MODE_LAYOUTS_UPDATED`, Edit Mode exit) and stance bar button count changes (`UPDATE_SHAPESHIFT_FORMS`), which previously reverted the reversal.
+- Options panel: the “Defaults” button now restores the real defaults (Action Bar 1 reversed on Y, X untouched).
+- Repair incomplete SavedVariables (missing bar entries) instead of breaking the options panel.
+- Remove the legacy methods 1/2 and the unused `MainMenuBar` name fallback.
+- Only re-lay out a bar when Blizzard has re-laid it out since the last pass, or when the settings changed; most events (page/form changes, pet updates, combat) now cost next to nothing.
 
 #### 1.2.0 (2026-09-18)
 
